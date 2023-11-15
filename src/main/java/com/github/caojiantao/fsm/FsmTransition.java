@@ -9,16 +9,28 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface FsmTransition {
 
+    /**
+     * 状态类型，用来标记所属状态机类型
+     */
     Class<? extends Enum<?>> stateType();
 
+    /**
+     * 转移前状态
+     */
     String beforeState();
 
     /**
-     * 转移目标状态，程序通常不用
+     * 转移后状态
      */
     String afterState();
 
+    /**
+     * 事件类型
+     */
     Class<? extends Enum<?>> eventType();
 
+    /**
+     * 触发转移的具体事件
+     */
     String triggerEvent();
 }
