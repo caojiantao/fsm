@@ -11,6 +11,7 @@ import java.util.Map;
 /**
  * 状态机工厂
  */
+@SuppressWarnings("all")
 public class FsmFactory {
 
     /**
@@ -26,16 +27,16 @@ public class FsmFactory {
      * @param applicationContext 容器上下文
      */
     public static void init(ApplicationContext applicationContext) {
-        Collection<IFsmAction> actions = applicationContext.getBeansOfType(IFsmAction.class).values();
-        MultiValueMap<Class, IFsmAction> actionMap = new LinkedMultiValueMap<>();
-        for (IFsmAction action : actions) {
-            FsmTransition annotation = action.getClass().getAnnotation(FsmTransition.class);
-            FsmAssert.notNull(annotation, "action 不能没有 @FsmTransition 修饰，" + action);
-            actionMap.add(annotation.stateType(), action);
+        Collection<IFsmTransition> transitions = applicationContext.getBeansOfType(IFsmTransition.class).values();
+        MultiValueMap<Class, IFsmTransition> transitionMap = new LinkedMultiValueMap<>();
+        for (IFsmTransition transition : transitions) {
+            Class<?> stateType = GenericUtils.getInterfaceGeneric(transition, IFsmTransition.class, 2);
+            FsmAssert.notNull(stateType, "状态机类型不能为空");
+            transitionMap.add(stateType, transition);
         }
-        actionMap.forEach((stateType, actionList) -> {
+        transitionMap.forEach((stateType, transitionList) -> {
             Fsm fsm = new Fsm();
-            fsm.init(actionList);
+            fsm.init(transitionList);
             fsmMap.put(stateType, fsm);
         });
         init = true;
@@ -48,7 +49,7 @@ public class FsmFactory {
      */
     public static void fire(FsmContext context) {
         FsmAssert.isTrue(init, "状态机还未初始化");
-        Class<?> stateType = context.getCurrentState().getClass();
+        Class<?> stateType = context.getClass();
         Fsm fsm = fsmMap.get(stateType);
         FsmAssert.notNull(fsm, "状态机不存在，" + stateType);
         fsm.fire(context);
